@@ -1,6 +1,8 @@
 import { NextFunction, Response, Request } from "express";
 import user from "../models/user.js";
 import { hash , compare} from 'bcrypt';
+import { createToken } from "../utils/token-manager.js";
+import { COOKIE_NAME } from "../utils/constants.js";
 
 
 
@@ -23,6 +25,28 @@ export const userSignup = async(req: Request, res: Response, next: NextFunction)
     const hashedPass = await hash(password,10);
     const newUser = new user({name, email, password: hashedPass});
     await newUser.save();
+
+    //create token and store cookie
+
+    res.clearCookie(COOKIE_NAME, {
+      httpOnly: true,
+      domain: "localhost",
+      signed: true,
+      path: "/",
+    });
+    const token = createToken(newUser._id.toString(),newUser.email,"7d");
+
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 7); 
+
+    res.cookie(COOKIE_NAME,token, {
+      path: "/",
+      domain: "localhost",
+      expires,
+      httpOnly: true,
+      signed: true,
+      });
+
     return res.status(201).json({"message": "user created", id: newUser._id.toString()})
   } catch (error) {
     console.log(error);
@@ -40,6 +64,25 @@ export const userLogin = async(req: Request, res: Response, next: NextFunction) 
     if (!isPasswordCorrect) {
       return res.status(403).send("Incorrect password");
     }
+    res.clearCookie(COOKIE_NAME, {
+      httpOnly: true,
+      domain: "localhost",
+      signed: true,
+      path: "/",
+    });
+    const token = createToken(existingUser._id.toString(),existingUser.email,"7d");
+
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 7); 
+
+    res.cookie(COOKIE_NAME,token, {
+      path: "/",
+      domain: "localhost",
+      expires,
+      httpOnly: true,
+      signed: true,
+      });
+
     return res.status(200).json({message: "ok", id: existingUser._id.toString()});
   } catch (error) {
     console.log(error);
