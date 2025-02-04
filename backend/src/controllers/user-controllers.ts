@@ -47,7 +47,7 @@ export const userSignup = async(req: Request, res: Response, next: NextFunction)
       signed: true,
       });
 
-    return res.status(201).json({"message": "user created", id: newUser._id.toString()})
+    return res.status(201).json({"message": "user created", name: existingUser.name, email: existingUser.email})
   } catch (error) {
     console.log(error);
     return res.status(200).json({message: "error",cause: error.message});
@@ -83,7 +83,7 @@ export const userLogin = async(req: Request, res: Response, next: NextFunction) 
       signed: true,
       });
 
-    return res.status(200).json({message: "ok", id: existingUser._id.toString()});
+    return res.status(200).json({message: "ok", name: existingUser.name, email: existingUser.email});
   } catch (error) {
     console.log(error);
     return res.status(200).json({message: "error",cause: error.message});

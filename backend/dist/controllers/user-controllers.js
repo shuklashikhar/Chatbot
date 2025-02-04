@@ -39,11 +39,11 @@ export const userSignup = async (req, res, next) => {
             httpOnly: true,
             signed: true,
         });
-        return res.status(201).json({ "message": "user created", id: newUser._id.toString() });
+        return res.status(201).json({ "message": "user created", name: existingUser.name, email: existingUser.email });
     }
     catch (error) {
         console.log(error);
-        return res.status(200).json({ message: "error", cause: error.message });
+        return res.status(200)  .json({ message: "error", cause: error.message });
     }
 };
 export const userLogin = async (req, res, next) => {
@@ -73,7 +73,25 @@ export const userLogin = async (req, res, next) => {
             httpOnly: true,
             signed: true,
         });
-        return res.status(200).json({ message: "ok", id: existingUser._id.toString() });
+        return res.status(200).json({ message: "ok", name: existingUser.name, email: existingUser.email });
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(200).json({ message: "error", cause: error.message });
+    }
+};
+
+export const verifyUser = async (req, res, next) => {
+    try {
+        //
+        const existingUser = await user.findById(res.locals.jwtData.id);
+        if (!existingUser)
+            return res.status(401).send("User not registered or Token malfunction");
+        if (existingUser._id.toString() !== res.locals.jwtData.id) {
+            return res.status(401).send("Permissions didn't match");
+        }
+         
+        return res.status(200).json({ message: "ok", name: existingUser.name, email: existingUser.email });
     }
     catch (error) {
         console.log(error);
